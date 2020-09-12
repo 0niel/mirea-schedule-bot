@@ -1,4 +1,5 @@
 {
     "vk_token": "",
-    "mongo_connect": ""
+    "mongo_connect": "",
+    "admin_id": 225632479
 }
