@@ -8,6 +8,7 @@ import openpyxl
 import numpy as np
 import requests
 import asyncio
+import json
 import pytz
 import os
 
@@ -38,7 +39,7 @@ async def new_schedule_check():
                 current_column = ws[column_letter]
                 for cell in current_column:
                     if isinstance(cell.value, str):
-                        if cell.value.find('25-20') > -1:
+                        if cell.value.find(json.load(open("config.json", 'r'))['group']) > -1:
                             column_letters['schedule'] = column_letter
                             column_letters['cabinets'] = get_column_letter(column + 3)
                             column_letters['lesson_type'] = get_column_letter(column + 1)

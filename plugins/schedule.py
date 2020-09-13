@@ -109,8 +109,8 @@ async def convert(obj):
 
 
 @plugin.on_commands(["menu", 'меню', 'начать', 'start', 'help', 'помощь', 'икбо'])
-async def _(msg, ctx):
-    await ctx.reply("Выберите опцию.")
+async def _(_, ctx):
+    await ctx.reply("Выберите опцию.", keyboard=KEYBOARD_MENU_OBJECT_STRING)
 
 
 @plugin.on_commands(["week_number"])
@@ -137,7 +137,7 @@ async def _(msg, ctx):
 
 
 @plugin.vk.on_payload([32])
-async def _(msg, ctx):
+async def _(_, ctx):
     schedule_all = schedule_collection.find_one({'type': 'schedule'})
     if schedule_all['is_even']:
         await ctx.reply("Следующая неделя нечетная. Выберите день следующей недели:",
@@ -148,12 +148,12 @@ async def _(msg, ctx):
 
 
 @plugin.vk.on_payload([31])
-async def _(msg, ctx):
+async def _(_, ctx):
     await current_week_schedule(ctx)
 
 
 @plugin.on_commands(["расписание", 'р', 'schedule'])
-async def _(msg, ctx):
+async def _(_, ctx):
     await current_week_schedule(ctx)
 
 
@@ -168,12 +168,11 @@ async def current_week_schedule(ctx):
 
 
 @plugin.vk.on_payload([20])
-async def _(msg, ctx):
+async def _(_, ctx):
     await ctx.reply("Выберите неделю", keyboard=KEYBOARD_WEEK_SELECT_OBJECT_STRING)
 
 
 def get_day_by_index(index):
-    day = ''
     if index == 0:
         day = 'Понедельник'
     elif index == 1:
@@ -186,6 +185,22 @@ def get_day_by_index(index):
         day = 'Пятница'
 
     return day
+
+
+def get_time_by_index(index):
+    if index == 0:
+        time = "9:00-10:30"
+    elif index == 1:
+        time = "10:40-12:10"
+    elif index == 2:
+        time = "12:40-14:10"
+    elif index == 3:
+        time = "14:20-15:50"
+    elif index == 4:
+        time = "16:20-17:50"
+    else:
+        time = "18:00-19:30"
+    return time
 
 
 @plugin.on_any_unprocessed_message()
@@ -214,8 +229,9 @@ async def on_payloads(msg, ctx):
                                         arr_lesson[i][int(schedule_all['is_even'])].split(' н. ')[1]
                                 else:
                                     continue
-                            msg += '☠ {0} пара {1}: {2} {3} {4} {5}\n'.format(
+                            msg += "☠ {0} пара ({1}): {2} {3} {4} {5}\n".format(
                                 str(i + 1),
+                                get_time_by_index(i),
                                 arr_lesson[i][int(schedule_all['is_even'])],
                                 await convert(arr_cabs[i][int(schedule_all['is_even'])]),
                                 await convert(arr_types[i][int(schedule_all['is_even'])]),
@@ -233,8 +249,9 @@ async def on_payloads(msg, ctx):
                                         arr_lesson[i][int(not schedule_all['is_even'])].split(' н. ')[1]
                                 else:
                                     continue
-                            msg += "☠ {0} пара {1}: {2} {3} {4} {5}\n".format(
+                            msg += "☠ {0} пара ({1}): {2} {3} {4} {5}\n".format(
                                 str(i + 1),
+                                get_time_by_index(i),
                                 arr_lesson[i][int(not schedule_all['is_even'])],
                                 await convert(arr_cabs[i][int(not schedule_all['is_even'])]),
                                 await convert(arr_types[i][int(not schedule_all['is_even'])]),
@@ -245,7 +262,7 @@ async def on_payloads(msg, ctx):
 
 
 @plugin.vk.on_payload([21])
-async def _(msg, ctx):
+async def _(_, ctx):
     msg = "1 пара – 9:00-10:30\n"
     msg += "2 пара – 10:40-12:10\n"
     msg += "3 пара – 12:40-14:10\n"
