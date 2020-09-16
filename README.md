@@ -11,3 +11,7 @@
 * `vk_token` - token бота-сообщества в ВКонтакте
 * `mongo_connect` - [строка для подключения](mongodb+srv://msiet5wVdc5fh3AS:<password>@schedulebot.xredu.mongodb.net/<dbname>?retryWrites=true&w=majority) к MongoDB
 * `admin_id` - ID страницы, которая будет считаться администратором. Нужно для управляющих команд.
+
+
+Бесплатно захостить: heroku.com
+Бесплатный MongoDB хостинг: mongodb.com
