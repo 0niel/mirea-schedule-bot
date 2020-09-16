@@ -1,4 +1,5 @@
 # mirea-schedule-bot
+[![CodeFactor](https://www.codefactor.io/repository/github/0niel/mirea-schedule-bot/badge)](https://www.codefactor.io/repository/github/0niel/mirea-schedule-bot)
 Бот выводит расписание на текущую и следующую неделю для выбранной группы. Расписание парсится с сайта и excel документа каждые 10 минут.
 
 ## Установка и запуск
