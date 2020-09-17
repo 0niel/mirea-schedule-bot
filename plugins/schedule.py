@@ -104,8 +104,7 @@ plugin = Plugin(name="MIREA Schedule", description="Bot for VK")
 async def convert(obj):
     if obj is not None:
         return "[" + obj + "]"
-    else:
-        return ''
+    return ''
 
 
 @plugin.on_commands(["menu", 'меню', 'начать', 'start', 'help', 'помощь', 'икбо'])
