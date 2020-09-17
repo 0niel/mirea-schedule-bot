@@ -6,6 +6,5 @@ lxml
 bs4
 requests
 pymongo
-pymongo[srv]
 dnspython
 pytz
