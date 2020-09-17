@@ -1,4 +1,4 @@
-[![CodeFactor](https://www.codefactor.io/repository/github/0niel/mirea-schedule-bot/badge)](https://www.codefactor.io/repository/github/0niel/mirea-schedule-bot)
+[![CodeFactor](https://www.codefactor.io/repository/github/0niel/mirea-schedule-bot/badge)](https://www.codefactor.io/repository/github/0niel/mirea-schedule-bot)[![codebeat badge](https://codebeat.co/badges/d430d71a-b834-4f8b-90ed-3a333b64975f)](https://codebeat.co/projects/github-com-0niel-mirea-schedule-bot-master)[![Coverage Status](https://coveralls.io/repos/github/0niel/mirea-schedule-bot/badge.svg?branch=master)](https://coveralls.io/github/0niel/mirea-schedule-bot?branch=master)
 # mirea-schedule-bot
 Бот выводит расписание на текущую и следующую неделю для выбранной группы. Расписание парсится с сайта и excel документа каждые 10 минут.
 
