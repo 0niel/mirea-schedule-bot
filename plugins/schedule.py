@@ -116,23 +116,10 @@ async def _(_, ctx):
 async def _(msg, ctx):
     if msg.raw['object']['message']['from_id'] == json.load(open("config.json", 'r'))['admin_id']:
         schedule_collection.update_one({'type': 'schedule'},
-                                       {'$set': {'week_number': int(ctx.body)}})
+                                       {'$set': {'week_number': int(ctx.body),
+                                                 'is_even': True if int(ctx.body) % 2 == 0 else False}})
 
         await ctx.reply("Номер недели успешно изменен на " + ctx.body)
-
-
-@plugin.on_commands(["even"])
-async def _(msg, ctx):
-    if msg.raw['object']['message']['from_id'] == json.load(open("config.json", 'r'))['admin_id']:
-        is_even = False
-        if ctx.body == 'True':
-            is_even = True
-        elif ctx.body == 'False':
-            is_even = False
-        schedule_collection.update_one({'type': 'schedule'},
-                                       {'$set': {'is_even': is_even}})
-
-        await ctx.reply("Четность недели успешно установлена на " + ctx.body)
 
 
 @plugin.vk.on_payload([32])

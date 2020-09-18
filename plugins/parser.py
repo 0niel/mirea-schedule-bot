@@ -69,10 +69,7 @@ async def new_schedule_check():
 
             os.remove(get_path(__file__, "schedule.xlsx"))
 
-            all_days_list = []
-            all_cabs_list = []
-            all_types_list = []
-            all_teachers_list = []
+            all_days_list, all_cabs_list, all_types_list, all_teachers_list = [], [], [], []
 
             for day in schedule:
                 all_days_list.append(list(day))
@@ -92,14 +89,11 @@ async def new_schedule_check():
             date = datetime.now(tz).weekday()
 
             if schedule_all is not None:
-                if date == 6 and schedule_all['change_even'] is False:
-                    schedule_collection.update_one({'type': 'schedule'}, {'$set': {'change_even': True}})
-                elif date == 0 and schedule_all['change_even'] is True:
-                    is_even = schedule_all['is_even']
+                if date == 0:
                     week_number = schedule_all['week_number'] + 1
+                    is_even = True if week_number % 2 == 0 else False
                     schedule_collection.update_one({'type': 'schedule'},
-                                                   {'$set': {'is_even': not is_even, 'change_even': False,
-                                                             'week_number': week_number}})
+                                                   {'$set': {'is_even': is_even, 'week_number': week_number}})
 
                 schedule_collection.update_one({'type': 'schedule'}, {'$set': {'schedule': all_days_list,
                                                                                'cabinets': all_cabs_list,
@@ -111,7 +105,7 @@ async def new_schedule_check():
                                                 'cabinets': all_cabs_list,
                                                 'lesson_types': all_types_list,
                                                 'teachers': all_teachers_list,
-                                                'change_even': False, 'is_even': False, 'week_number': 1})
+                                                'is_even': False, 'week_number': 1})
         except BadZipFile:
             print('Exception BadZipFile: file not found on mirea.ru')
 
