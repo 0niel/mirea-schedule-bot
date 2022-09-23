@@ -24,11 +24,9 @@ async def new_schedule_check():
             test = soup.findAll('a', class_='uk-link-toggle')
             url = test[15].get('href')
 
-            f = open(get_path(__file__, "schedule.xlsx"), "wb")
-            ufr = requests.get(url)
-            f.write(ufr.content)
-            f.close()
-
+            with open(get_path(__file__, "schedule.xlsx"), "wb") as f:
+                ufr = requests.get(url)
+                f.write(ufr.content)
             wb = openpyxl.load_workbook(get_path(__file__, "schedule.xlsx"))
             ws = wb.active
 
@@ -38,12 +36,17 @@ async def new_schedule_check():
                 column_letter = get_column_letter(column)
                 current_column = ws[column_letter]
                 for cell in current_column:
-                    if isinstance(cell.value, str):
-                        if cell.value.find(json.load(open("config.json", 'r'))['group']) > -1:
-                            column_letters['schedule'] = column_letter
-                            column_letters['cabinets'] = get_column_letter(column + 3)
-                            column_letters['lesson_type'] = get_column_letter(column + 1)
-                            column_letters['teachers'] = get_column_letter(column + 2)
+                    if (
+                        isinstance(cell.value, str)
+                        and cell.value.find(
+                            json.load(open("config.json", 'r'))['group']
+                        )
+                        > -1
+                    ):
+                        column_letters['schedule'] = column_letter
+                        column_letters['cabinets'] = get_column_letter(column + 3)
+                        column_letters['lesson_type'] = get_column_letter(column + 1)
+                        column_letters['teachers'] = get_column_letter(column + 2)
 
             columns = {'schedule': ws[column_letters['schedule']], 'cabinets': ws[column_letters['cabinets']],
                        'lesson_type': ws[column_letters['lesson_type']], 'teachers': ws[column_letters['teachers']]}
@@ -71,18 +74,10 @@ async def new_schedule_check():
 
             all_days_list, all_cabs_list, all_types_list, all_teachers_list = [], [], [], []
 
-            for day in schedule:
-                all_days_list.append(list(day))
-
-            for cab in cabs:
-                all_cabs_list.append(list(cab))
-
-            for lesson_type in lesson_types:
-                all_types_list.append(list(lesson_type))
-
-            for teacher in teachers:
-                all_teachers_list.append(list(teacher))
-
+            all_days_list.extend(list(day) for day in schedule)
+            all_cabs_list.extend(list(cab) for cab in cabs)
+            all_types_list.extend(list(lesson_type) for lesson_type in lesson_types)
+            all_teachers_list.extend(list(teacher) for teacher in teachers)
             schedule_all = schedule_collection.find_one({'type': 'schedule'})
 
             tz = pytz.timezone('Europe/Moscow')
@@ -91,7 +86,7 @@ async def new_schedule_check():
             if schedule_all is not None:
                 if date == 0:
                     week_number = schedule_all['week_number'] + 1
-                    is_even = True if week_number % 2 == 0 else False
+                    is_even = week_number % 2 == 0
                     schedule_collection.update_one({'type': 'schedule'},
                                                    {'$set': {'is_even': is_even, 'week_number': week_number}})
 

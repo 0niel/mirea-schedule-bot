@@ -102,9 +102,7 @@ plugin = Plugin(name="MIREA Schedule", description="Bot for VK")
 
 
 async def convert(obj):
-    if obj is not None:
-        return "[" + obj + "]"
-    return ''
+    return f"[{obj}]" if obj is not None else ''
 
 
 @plugin.on_commands(["menu", 'меню', 'начать', 'start', 'help', 'помощь', 'икбо'])
@@ -115,11 +113,18 @@ async def _(_, ctx):
 @plugin.on_commands(["week_number"])
 async def _(msg, ctx):
     if msg.raw['object']['message']['from_id'] == json.load(open("config.json", 'r'))['admin_id']:
-        schedule_collection.update_one({'type': 'schedule'},
-                                       {'$set': {'week_number': int(ctx.body),
-                                                 'is_even': True if int(ctx.body) % 2 == 0 else False}})
+        schedule_collection.update_one(
+            {'type': 'schedule'},
+            {
+                '$set': {
+                    'week_number': int(ctx.body),
+                    'is_even': int(ctx.body) % 2 == 0,
+                }
+            },
+        )
 
-        await ctx.reply("Номер недели успешно изменен на " + ctx.body)
+
+        await ctx.reply(f"Номер недели успешно изменен на {ctx.body}")
 
 
 @plugin.vk.on_payload([32])
@@ -160,97 +165,94 @@ async def _(_, ctx):
 
 def get_day_by_index(index):
     if index == 0:
-        day = 'Понедельник'
+        return 'Понедельник'
     elif index == 1:
-        day = 'Вторник'
+        return 'Вторник'
     elif index == 2:
-        day = 'Среда'
+        return 'Среда'
     elif index == 3:
-        day = 'Четверг'
+        return 'Четверг'
     else:
-        day = 'Пятница'
-
-    return day
+        return 'Пятница'
 
 
 def get_time_by_index(index):
     if index == 0:
-        time = "9:00-10:30"
+        return "9:00-10:30"
     elif index == 1:
-        time = "10:40-12:10"
+        return "10:40-12:10"
     elif index == 2:
-        time = "12:40-14:10"
+        return "12:40-14:10"
     elif index == 3:
-        time = "14:20-15:50"
+        return "14:20-15:50"
     elif index == 4:
-        time = "16:20-17:50"
+        return "16:20-17:50"
     else:
-        time = "18:00-19:30"
-    return time
+        return "18:00-19:30"
 
 
 @plugin.on_any_unprocessed_message()
 async def on_payloads(msg, ctx):
-    if 'payload' in msg.raw['object']['message']:
-        if isinstance(msg.raw['object']['message']['payload'], str):
-            payload = json.loads(msg.raw['object']['message']['payload'])
-            if payload['button'].split()[0] == 'current' or payload['button'].split()[0] == 'next':
+    if 'payload' not in msg.raw['object']['message']:
+        return
+    if isinstance(msg.raw['object']['message']['payload'], str):
+        payload = json.loads(msg.raw['object']['message']['payload'])
+        if payload['button'].split()[0] in ['current', 'next']:
 
-                schedule_all = schedule_collection.find_one({'type': 'schedule'})
-                index = int(payload['button'].split()[1])
-                arr_lesson = np.array_split(schedule_all['schedule'][index], 6)
-                arr_cabs = np.array_split(schedule_all['cabinets'][index], 6)
-                arr_types = np.array_split(schedule_all['lesson_types'][index], 6)
-                arr_teachers = np.array_split(schedule_all['teachers'][index], 6)
-                day = get_day_by_index(index)
+            schedule_all = schedule_collection.find_one({'type': 'schedule'})
+            index = int(payload['button'].split()[1])
+            arr_lesson = np.array_split(schedule_all['schedule'][index], 6)
+            arr_cabs = np.array_split(schedule_all['cabinets'][index], 6)
+            arr_types = np.array_split(schedule_all['lesson_types'][index], 6)
+            arr_teachers = np.array_split(schedule_all['teachers'][index], 6)
+            day = get_day_by_index(index)
 
-                if payload['button'].split()[0] == 'current':
-                    msg = f"{day} текущей недели:\n"
-                    for i in range(6):
-                        if arr_lesson[i][int(schedule_all['is_even'])] is not None:
-                            if arr_lesson[i][int(schedule_all['is_even'])].find(' н.') > -1:
-                                if str(schedule_all['week_number']) in \
-                                        arr_lesson[i][int(schedule_all['is_even'])].split(' н. ')[0].split(','):
-                                    arr_lesson[i][int(schedule_all['is_even'])] = \
-                                        arr_lesson[i][int(schedule_all['is_even'])].split(' н. ')[1]
-                                else:
-                                    continue
-                            msg += "☠ {0} пара ({1}): {2} {3} {4} {5}\n".format(
-                                str(i + 1),
-                                get_time_by_index(i),
-                                arr_lesson[i][int(schedule_all['is_even'])],
-                                await convert(arr_cabs[i][int(schedule_all['is_even'])]),
-                                await convert(arr_types[i][int(schedule_all['is_even'])]),
-                                await convert(arr_teachers[i][int(schedule_all['is_even'])])
-                            )
+            if payload['button'].split()[0] == 'current':
+                msg = f"{day} текущей недели:\n"
+                for i in range(6):
+                    if arr_lesson[i][int(schedule_all['is_even'])] is not None:
+                        if arr_lesson[i][int(schedule_all['is_even'])].find(' н.') > -1:
+                            if str(schedule_all['week_number']) in \
+                                    arr_lesson[i][int(schedule_all['is_even'])].split(' н. ')[0].split(','):
+                                arr_lesson[i][int(schedule_all['is_even'])] = \
+                                    arr_lesson[i][int(schedule_all['is_even'])].split(' н. ')[1]
+                            else:
+                                continue
+                        msg += "☠ {0} пара ({1}): {2} {3} {4} {5}\n".format(
+                            str(i + 1),
+                            get_time_by_index(i),
+                            arr_lesson[i][int(schedule_all['is_even'])],
+                            await convert(arr_cabs[i][int(schedule_all['is_even'])]),
+                            await convert(arr_types[i][int(schedule_all['is_even'])]),
+                            await convert(arr_teachers[i][int(schedule_all['is_even'])])
+                        )
 
-                elif payload['button'].split()[0] == 'next':
-                    msg = f"{day} следующей недели:\n"
-                    for i in range(6):
-                        if arr_lesson[i][int(not schedule_all['is_even'])] is not None:
-                            if arr_lesson[i][int(not schedule_all['is_even'])].find(' н.') > -1:
-                                if str(schedule_all['week_number'] + 1) in \
-                                        arr_lesson[i][int(not schedule_all['is_even'])].split(' н. ')[0].split(','):
-                                    arr_lesson[i][int(not schedule_all['is_even'])] = \
-                                        arr_lesson[i][int(not schedule_all['is_even'])].split(' н. ')[1]
-                                else:
-                                    continue
-                            msg += "☠ {0} пара ({1}): {2} {3} {4} {5}\n".format(
-                                str(i + 1),
-                                get_time_by_index(i),
-                                arr_lesson[i][int(not schedule_all['is_even'])],
-                                await convert(arr_cabs[i][int(not schedule_all['is_even'])]),
-                                await convert(arr_types[i][int(not schedule_all['is_even'])]),
-                                await convert(arr_teachers[i][int(not schedule_all['is_even'])])
-                            )
+            elif payload['button'].split()[0] == 'next':
+                msg = f"{day} следующей недели:\n"
+                for i in range(6):
+                    if arr_lesson[i][int(not schedule_all['is_even'])] is not None:
+                        if arr_lesson[i][int(not schedule_all['is_even'])].find(' н.') > -1:
+                            if str(schedule_all['week_number'] + 1) in \
+                                    arr_lesson[i][int(not schedule_all['is_even'])].split(' н. ')[0].split(','):
+                                arr_lesson[i][int(not schedule_all['is_even'])] = \
+                                    arr_lesson[i][int(not schedule_all['is_even'])].split(' н. ')[1]
+                            else:
+                                continue
+                        msg += "☠ {0} пара ({1}): {2} {3} {4} {5}\n".format(
+                            str(i + 1),
+                            get_time_by_index(i),
+                            arr_lesson[i][int(not schedule_all['is_even'])],
+                            await convert(arr_cabs[i][int(not schedule_all['is_even'])]),
+                            await convert(arr_types[i][int(not schedule_all['is_even'])]),
+                            await convert(arr_teachers[i][int(not schedule_all['is_even'])])
+                        )
 
-                await ctx.reply(msg)
+            await ctx.reply(msg)
 
 
 @plugin.vk.on_payload([21])
 async def _(_, ctx):
-    msg = "1 пара – 9:00-10:30\n"
-    msg += "2 пара – 10:40-12:10\n"
+    msg = "1 пара – 9:00-10:30\n" + "2 пара – 10:40-12:10\n"
     msg += "3 пара – 12:40-14:10\n"
     msg += "4 пара – 14:20-15:50\n"
     msg += "5 пара – 16:20-17:50\n"
